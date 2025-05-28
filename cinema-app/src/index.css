@@ -23,3 +23,111 @@ code {
 #root {
   min-height: 100vh;
 }
+
+/* Додайте ці стилі до вашого існуючого index.css */
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.movie-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.movie-poster-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+.movie-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.movie-poster-container:hover .movie-overlay {
+  opacity: 1;
+}
+
+.book-now-btn {
+  background: linear-gradient(135deg, #ff6b9d, #c44569);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: translateY(20px);
+}
+
+.movie-overlay:hover .book-now-btn {
+  transform: translateY(0);
+}
+
+.book-now-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+}
+
+.movie-meta {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.movie-showtime {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.movie-actions {
+  margin-top: 15px;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #ff6b9d, #c44569);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+  background: linear-gradient(135deg, #c44569, #ff6b9d);
+}
+
+/* Додаткові стилі для адаптивності */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 15px;
+  }
+  
+  .book-now-btn,
+  .primary-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}

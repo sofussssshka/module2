@@ -1,0 +1,191 @@
+.booking-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0c29 0%, #24243e 50%, #302b63 100%);
+    padding: 20px;
+  }
+  
+  .booking-header {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+  }
+  
+  .back-button {
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .back-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+  }
+  
+  .movie-info {
+    display: flex;
+    gap: 25px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    align-items: flex-start;
+  }
+  
+  .movie-poster-small {
+    width: 120px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+  }
+  
+  .movie-details h1 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 28px;
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .movie-genre {
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .movie-showtime {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 15px;
+    font-weight: 500;
+  }
+  
+  .movie-description {
+    color: #555;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  
+  .booking-content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .booking-content h2 {
+    text-align: center;
+    color: white;
+    font-size: 32px;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .booking-actions {
+    text-align: center;
+    margin-top: 30px;
+  }
+  
+  .book-button {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+  }
+  
+  .book-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+  }
+  
+  .booking-error {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    background: linear-gradient(135deg, #0f0c29 0%, #24243e 50%, #302b63 100%);
+  }
+  
+  .booking-error h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Мобільна адаптивність */
+  @media (max-width: 768px) {
+    .booking-page {
+      padding: 15px;
+    }
+    
+    .movie-info {
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+      gap: 20px;
+    }
+    
+    .movie-poster-small {
+      width: 100px;
+      height: 150px;
+      align-self: center;
+    }
+    
+    .movie-details h1 {
+      font-size: 24px;
+    }
+    
+    .booking-content h2 {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    
+    .book-button {
+      padding: 12px 30px;
+      font-size: 16px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .movie-info {
+      padding: 15px;
+    }
+    
+    .movie-details h1 {
+      font-size: 20px;
+    }
+    
+    .booking-content h2 {
+      font-size: 24px;
+    }
+    
+    .book-button {
+      padding: 10px 25px;
+      font-size: 14px;
+    }
+  }
