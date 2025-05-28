@@ -1,4 +1,3 @@
-// src/components/CinemaHall.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import BookingService from '../services/BookingService';

@@ -44,45 +44,47 @@ const Booking = () => {
   const totalPrice = selectedSeats.length * moviePrice;
 
   return (
-    <div>
-      <h1>Бронювання: {movie.title}</h1>
-      <div className="movie-poster">
-        <img src={movie.poster} alt={movie.title} />
-      </div>
-      <CinemaHall onSeatSelect={handleSeatSelect} />
-      
-      {selectedSeats.length > 0 && !isFormVisible && (
-        <div className="booking-controls">
-          <div className="selected-info">
-            <h3>Вибрані місця:</h3>
-            <p className="selected-seats-list">
-              {selectedSeats.map(seat => seat.id).join(', ')}
-            </p>
-            <p>Загальна сума: {totalPrice} грн</p>
-          </div>
-          <button
-            className="book-button"
-            onClick={handleProceedToForm}
-          >
-            Забронювати
-          </button>
+    <div className="booking-page">
+      <div className="cinema-hall">
+        <h1>Бронювання: {movie.title}</h1>
+        <div className="movie-poster">
+          <img src={movie.poster} alt={movie.title} />
         </div>
-      )}
 
-      {!isFormVisible && (
-        <button onClick={() => navigate('/')} className="back-to-list-btn">
-          Назад до фільмів
-        </button>
-      )}
+        {!isFormVisible && (
+          <>
+            <CinemaHall onSeatSelect={handleSeatSelect} />
 
-      {isFormVisible && (
-        <BookingForm
-          selectedSeats={selectedSeats}
-          movieTitle={movie.title}
-          moviePrice={moviePrice}
-          onBack={handleBackToSeats}
-        />
-      )}
+            {selectedSeats.length > 0 && (
+              <div className="booking-controls">
+                <div className="selected-info">
+                  <h3>Вибрані місця:</h3>
+                  <p className="selected-seats-list">
+                    {selectedSeats.map(seat => seat.id).join(', ')}
+                  </p>
+                  <p>Загальна сума: {totalPrice} грн</p>
+                </div>
+                <button className="book-button" onClick={handleProceedToForm}>
+                  Забронювати
+                </button>
+              </div>
+            )}
+
+            <button onClick={() => navigate('/')} className="back-to-list-btn">
+              Назад до фільмів
+            </button>
+          </>
+        )}
+
+        {isFormVisible && (
+          <BookingForm
+            selectedSeats={selectedSeats}
+            movieTitle={movie.title}
+            moviePrice={moviePrice}
+            onBack={handleBackToSeats}
+          />
+        )}
+      </div>
       <ToastContainer />
     </div>
   );

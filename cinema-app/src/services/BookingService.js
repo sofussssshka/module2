@@ -1,175 +1,136 @@
-// src/services/BookingService.js
-const BOOKING_KEY = "movieBookings";
-
-const BookingService = {
-  // Отримати всі бронювання для конкретного фільму
-  getBookings: (movieId) => {
+class BookingService {
+  static saveBooking(movieId, seatIds, userInfo) {
     try {
-      const bookings = JSON.parse(localStorage.getItem(BOOKING_KEY) || "{}");
-      return bookings[movieId] || [];
-    } catch (error) {
-      console.error("Помилка при отриманні бронювань:", error);
-      return [];
-    }
-  },
+      console.log("Saving booking:", { movieId, seatIds, userInfo });
 
-  // Зберегти нове бронювання
-  saveBooking: (movieId, seats, userData) => {
-    try {
-      const bookings = JSON.parse(localStorage.getItem(BOOKING_KEY) || "{}");
-
-      // Ініціалізуємо масив для фільму якщо його ще немає
-      if (!bookings[movieId]) {
-        bookings[movieId] = [];
+      // Отримуємо існуючі бронювання з localStorage
+      let existingBookings = {};
+      try {
+        existingBookings = JSON.parse(localStorage.getItem("bookings") || "{}");
+      } catch (e) {
+        console.log("No existing bookings found, creating new");
+        existingBookings = {};
       }
 
       // Перевіряємо, чи не заброньовані вже місця
-      const existingSeats = BookingService.getBookedSeats(movieId);
-      const conflictSeats = seats.filter((seat) =>
-        existingSeats.includes(seat)
+      const movieBookings = existingBookings[movieId] || [];
+      const alreadyBooked = seatIds.some((seatId) =>
+        movieBookings.some(
+          (booking) => booking.seats && booking.seats.includes(seatId)
+        )
       );
 
-      if (conflictSeats.length > 0) {
-        throw new Error(`Місця ${conflictSeats.join(", ")} вже заброньовані`);
+      if (alreadyBooked) {
+        console.log("Some seats already booked");
+        return {
+          success: false,
+          error: "Деякі з вибраних місць вже заброньовані",
+        };
       }
 
-      // Додаємо нове бронювання
+      // Створюємо нове бронювання
       const newBooking = {
-        id: Date.now().toString(), // Унікальний ID бронювання
-        seats: [...seats],
-        userData: { ...userData },
-        timestamp: new Date().toISOString(),
+        id: Date.now().toString(),
+        movieId: movieId,
+        seats: seatIds,
+        userInfo: userInfo,
+        bookingDate: new Date().toISOString(),
         status: "confirmed",
       };
 
-      bookings[movieId].push(newBooking);
-      localStorage.setItem(BOOKING_KEY, JSON.stringify(bookings));
+      console.log("New booking created:", newBooking);
 
-      return newBooking;
+      // Додаємо до існуючих бронювань
+      if (!existingBookings[movieId]) {
+        existingBookings[movieId] = [];
+      }
+      existingBookings[movieId].push(newBooking);
+
+      // Зберігаємо в localStorage
+      localStorage.setItem("bookings", JSON.stringify(existingBookings));
+      console.log("Booking saved to localStorage");
+
+      return {
+        success: true,
+        booking: newBooking,
+        message: "Бронювання успішно збережено",
+      };
     } catch (error) {
-      console.error("Помилка при збереженні бронювання:", error);
-      throw error;
+      console.error("Error saving booking:", error);
+      return {
+        success: false,
+        error: "Помилка при збереженні бронювання: " + error.message,
+      };
     }
-  },
+  }
 
-  // Перевірити, чи заброньоване конкретне місце
-  isSeatBooked: (movieId, seat) => {
+  static isSeatBooked(movieId, seatId) {
     try {
-      const bookings = BookingService.getBookings(movieId);
-      return bookings.some(
-        (booking) =>
-          booking.status === "confirmed" && booking.seats.includes(seat)
-      );
+      const bookedSeats = BookingService.getBookedSeats(movieId);
+      return bookedSeats.includes(seatId);
     } catch (error) {
-      console.error("Помилка при перевірці місця:", error);
-      return false;
+      console.error("Error checking seat booking status:", error);
+      return false; // Default to false if there's an error
     }
-  },
+  }
 
-  // Отримати всі заброньовані місця для фільму
-  getBookedSeats: (movieId) => {
+  static getBookedSeats(movieId) {
     try {
-      const bookings = BookingService.getBookings(movieId);
-      const bookedSeats = [];
+      const bookings = JSON.parse(localStorage.getItem("bookings") || "{}");
+      const movieBookings = bookings[movieId] || [];
 
-      bookings.forEach((booking) => {
-        if (booking.status === "confirmed") {
-          bookedSeats.push(...booking.seats);
-        }
-      });
-
-      return [...new Set(bookedSeats)]; // Унікальні місця
+      // Повертаємо всі заброньовані місця для цього фільму
+      return movieBookings.reduce((seats, booking) => {
+        return seats.concat(booking.seats);
+      }, []);
     } catch (error) {
-      console.error("Помилка при отриманні заброньованих місць:", error);
+      console.error("Error getting booked seats:", error);
       return [];
     }
-  },
+  }
 
-  // Отримати статистику бронювань для фільму
-  getBookingStats: (movieId) => {
+  static getAllBookings() {
     try {
-      const bookings = BookingService.getBookings(movieId);
-      const totalSeats = 120; // 10 рядів по 12 місць
-      const bookedSeats = BookingService.getBookedSeats(movieId);
-
-      return {
-        totalBookings: bookings.length,
-        totalBookedSeats: bookedSeats.length,
-        availableSeats: totalSeats - bookedSeats.length,
-        occupancyRate: ((bookedSeats.length / totalSeats) * 100).toFixed(1),
-      };
+      return JSON.parse(localStorage.getItem("bookings") || "{}");
     } catch (error) {
-      console.error("Помилка при отриманні статистики:", error);
-      return {
-        totalBookings: 0,
-        totalBookedSeats: 0,
-        availableSeats: 120,
-        occupancyRate: "0.0",
-      };
+      console.error("Error getting bookings:", error);
+      return {};
     }
-  },
+  }
 
-  // Скасувати бронювання (додаткова функціональність)
-  cancelBooking: (movieId, bookingId) => {
+  static cancelBooking(movieId, bookingId) {
     try {
-      const bookings = JSON.parse(localStorage.getItem(BOOKING_KEY) || "{}");
+      const bookings = JSON.parse(localStorage.getItem("bookings") || "{}");
 
       if (bookings[movieId]) {
-        const bookingIndex = bookings[movieId].findIndex(
-          (b) => b.id === bookingId
+        bookings[movieId] = bookings[movieId].filter(
+          (booking) => booking.id !== bookingId
         );
 
-        if (bookingIndex !== -1) {
-          bookings[movieId][bookingIndex].status = "cancelled";
-          localStorage.setItem(BOOKING_KEY, JSON.stringify(bookings));
-          return true;
+        if (bookings[movieId].length === 0) {
+          delete bookings[movieId];
         }
+
+        localStorage.setItem("bookings", JSON.stringify(bookings));
+
+        return {
+          success: true,
+          message: "Бронювання скасовано",
+        };
       }
 
-      return false;
+      return {
+        success: false,
+        error: "Бронювання не знайдено",
+      };
     } catch (error) {
-      console.error("Помилка при скасуванні бронювання:", error);
-      return false;
+      console.error("Error canceling booking:", error);
+      return {
+        success: false,
+        error: "Помилка при скасуванні бронювання",
+      };
     }
-  },
-
-  // Очистити всі бронювання (для тестування)
-  clearAllBookings: () => {
-    try {
-      localStorage.removeItem(BOOKING_KEY);
-      return true;
-    } catch (error) {
-      console.error("Помилка при очищенні бронювань:", error);
-      return false;
-    }
-  },
-
-  // Отримати всі бронювання користувача по email
-  getUserBookings: (email) => {
-    try {
-      const allBookings = JSON.parse(localStorage.getItem(BOOKING_KEY) || "{}");
-      const userBookings = [];
-
-      Object.keys(allBookings).forEach((movieId) => {
-        allBookings[movieId].forEach((booking) => {
-          if (
-            booking.userData.email === email &&
-            booking.status === "confirmed"
-          ) {
-            userBookings.push({
-              ...booking,
-              movieId: parseInt(movieId),
-            });
-          }
-        });
-      });
-
-      return userBookings;
-    } catch (error) {
-      console.error("Помилка при отриманні бронювань користувача:", error);
-      return [];
-    }
-  },
-};
+  }
+}
 
 export default BookingService;

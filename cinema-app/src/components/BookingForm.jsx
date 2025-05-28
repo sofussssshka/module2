@@ -16,6 +16,7 @@ const BookingForm = ({ selectedSeats = [], movieTitle = '', moviePrice = 0, onCo
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -49,16 +50,35 @@ const BookingForm = ({ selectedSeats = [], movieTitle = '', moviePrice = 0, onCo
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
+    
+    if (!validateForm()) {
+      toast.error("Будь ласка, виправте помилки у формі", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
       const bookingData = {
         ...formData,
         seats: selectedSeats.map(s => s.id),
         totalPrice: selectedSeats.length * moviePrice
       };
 
-      BookingService.saveBooking(id, bookingData.seats, {
+      // Показуємо сповіщення про початок процесу
+      const loadingToast = toast.loading("Обробка бронювання...", {
+        position: "top-right",
+      });
+
+      // Симулюємо асинхронну операцію збереження
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const result = BookingService.saveBooking(id, bookingData.seats, {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -66,16 +86,65 @@ const BookingForm = ({ selectedSeats = [], movieTitle = '', moviePrice = 0, onCo
         totalPrice: bookingData.totalPrice
       });
 
-      toast.success(`Дякуємо за бронювання, ${formData.name}!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      // Закриваємо loading toast
+      toast.dismiss(loadingToast);
 
-      if (onConfirm) {
-        onConfirm(bookingData);
+      if (result.success) {
+        // Успішне бронювання
+        toast.success(
+          <div>
+            <strong>Дякуємо за бронювання, {formData.name}!</strong>
+            <br />
+            <small>Місця: {selectedSeats.map(s => s.id).join(', ')}</small>
+            <br />
+            <small>Сума: {bookingData.totalPrice} грн</small>
+          </div>, 
+          {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          }
+        );
+
+        // Відправляємо email підтвердження (симуляція)
+        setTimeout(() => {
+          toast.info(`📧 Підтвердження надіслано на ${formData.email}`, {
+            position: "bottom-right",
+            autoClose: 4000,
+          });
+        }, 1000);
+
+        if (onConfirm) {
+          onConfirm(bookingData);
+        }
+
+        // Перенаправлення через 2 секунди
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+
+      } else {
+        throw new Error(result.error || 'Помилка при бронюванні');
       }
 
-      navigate('/');
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast.error(
+        <div>
+          <strong>Помилка бронювання!</strong>
+          <br />
+          <small>{error.message || 'Спробуйте ще раз'}</small>
+        </div>,
+        {
+          position: "top-right",
+          autoClose: 5000,
+        }
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -112,6 +181,7 @@ const BookingForm = ({ selectedSeats = [], movieTitle = '', moviePrice = 0, onCo
               onChange={handleInputChange}
               className={errors.name ? 'error' : ''}
               placeholder="Введіть ваше повне ім'я"
+              disabled={isSubmitting}
             />
             {errors.name && <span className="error-message">{errors.name}</span>}
           </div>
@@ -125,6 +195,7 @@ const BookingForm = ({ selectedSeats = [], movieTitle = '', moviePrice = 0, onCo
               onChange={handleInputChange}
               className={errors.email ? 'error' : ''}
               placeholder="example@email.com"
+              disabled={isSubmitting}
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
@@ -138,13 +209,19 @@ const BookingForm = ({ selectedSeats = [], movieTitle = '', moviePrice = 0, onCo
               onChange={handleInputChange}
               className={errors.phone ? 'error' : ''}
               placeholder="+380XXXXXXXXX"
+              disabled={isSubmitting}
             />
             {errors.phone && <span className="error-message">{errors.phone}</span>}
           </div>
 
           <div className="form-group">
             <label>Час сеансу</label>
-            <select name="showtime" value={formData.showtime} onChange={handleInputChange}>
+            <select 
+              name="showtime" 
+              value={formData.showtime} 
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+            >
               <option value="14:00">14:00</option>
               <option value="17:00">17:00</option>
               <option value="20:00">20:00</option>
@@ -153,11 +230,20 @@ const BookingForm = ({ selectedSeats = [], movieTitle = '', moviePrice = 0, onCo
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn-cancel" onClick={onBack}>
+            <button 
+              type="button" 
+              className="btn-cancel" 
+              onClick={onBack}
+              disabled={isSubmitting}
+            >
               Скасувати
             </button>
-            <button type="submit" className="btn-submit">
-              Підтвердити ({totalPrice} грн)
+            <button 
+              type="submit" 
+              className="btn-submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Обробка...' : `Підтвердити (${totalPrice} грн)`}
             </button>
           </div>
         </form>
