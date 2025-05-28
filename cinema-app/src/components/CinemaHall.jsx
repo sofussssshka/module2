@@ -1,123 +1,108 @@
-import React, { useState } from 'react';
-import '../styles/CinemaHall.css';
+// src/components/CinemaHall.jsx
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import BookingService from '../services/BookingService';
+import '../styles/Booking.css';
 
-const CinemaHall = ({ movieTitle, onSeatsSelect }) => {
-  // Створюємо сітку місць 8x10 (8 рядів по 10 місць)
-  const rows = 8;
+const CinemaHall = ({ onSeatSelect }) => {
+  const { id } = useParams();
+  const rows = 8; // A to H
   const seatsPerRow = 10;
-  
-  // Генеруємо випадкові заброньовані місця
-  const generateBookedSeats = () => {
-    const booked = new Set();
-    const numberOfBookedSeats = Math.floor(Math.random() * 20) + 10; // 10-30 заброньованих місць
-    
-    while (booked.size < numberOfBookedSeats) {
-      const row = Math.floor(Math.random() * rows);
-      const seat = Math.floor(Math.random() * seatsPerRow);
-      booked.add(`${row}-${seat}`);
-    }
-    
-    return booked;
-  };
-
-  const [bookedSeats] = useState(generateBookedSeats());
+  const [seats, setSeats] = useState([]);
   const [selectedSeats, setSelectedSeats] = useState(new Set());
 
-  const handleSeatClick = (row, seat) => {
-    const seatId = `${row}-${seat}`;
-    
-    // Не можна вибрати заброньоване місце
-    if (bookedSeats.has(seatId)) return;
-    
+  useEffect(() => {
+    const generateSeats = () => {
+      const seatLayout = [];
+      for (let row = 0; row < rows; row++) {
+        const rowLetter = String.fromCharCode(65 + row); // A, B, C, ..., H
+        for (let number = 1; number <= seatsPerRow; number++) {
+          const seatId = `${rowLetter}${number}`;
+          const isBooked = BookingService.isSeatBooked(id, seatId);
+          seatLayout.push({
+            id: seatId,
+            row: rowLetter,
+            number,
+            status: isBooked ? 'booked' : 'available'
+          });
+        }
+      }
+      setSeats(seatLayout);
+    };
+    generateSeats();
+  }, [id]);
+
+  const handleSeatClick = (seat) => {
+    if (seat.status === 'booked') return;
+
     const newSelectedSeats = new Set(selectedSeats);
-    
-    if (newSelectedSeats.has(seatId)) {
-      newSelectedSeats.delete(seatId);
+    if (newSelectedSeats.has(seat.id)) {
+      newSelectedSeats.delete(seat.id);
     } else {
-      newSelectedSeats.add(seatId);
+      newSelectedSeats.add(seat.id);
     }
-    
     setSelectedSeats(newSelectedSeats);
-    
-    // Передаємо вибрані місця батьківському компоненту
-    if (onSeatsSelect) {
-      onSeatsSelect(Array.from(newSelectedSeats));
-    }
+    onSeatSelect(seats.filter(s => newSelectedSeats.has(s.id)));
   };
 
-  const getSeatClass = (row, seat) => {
-    const seatId = `${row}-${seat}`;
-    
-    if (bookedSeats.has(seatId)) return 'seat booked';
-    if (selectedSeats.has(seatId)) return 'seat selected';
+  const getSeatClass = (seat) => {
+    if (!seat) return 'seat available';
+    if (seat.status === 'booked') return 'seat booked';
+    if (selectedSeats.has(seat.id)) return 'seat selected';
     return 'seat available';
   };
 
-  const getSeatLabel = (row, seat) => {
-    const rowLetter = String.fromCharCode(65 + row); // A, B, C, D...
-    return `${rowLetter}${seat + 1}`;
-  };
+  if (seats.length === 0) {
+    return <div>Завантаження...</div>;
+  }
 
   return (
     <div className="cinema-hall">
       <div className="screen">
-        <div className="screen-text">ЕКРАН</div>
+        <div className="screen-label">ЕКРАН</div>
       </div>
       
-      <div className="seats-container">
-        {Array.from({ length: rows }, (_, row) => (
-          <div key={row} className="seat-row">
-            <div className="row-label">{String.fromCharCode(65 + row)}</div>
-            <div className="seats">
-              {Array.from({ length: seatsPerRow }, (_, seat) => (
-                <button
-                  key={`${row}-${seat}`}
-                  className={getSeatClass(row, seat)}
-                  onClick={() => handleSeatClick(row, seat)}
-                  disabled={bookedSeats.has(`${row}-${seat}`)}
-                  title={getSeatLabel(row, seat)}
-                >
-                  {seat + 1}
-                </button>
-              ))}
+      <div className="seats-grid">
+        {Array.from({ length: rows }, (_, row) => {
+          const rowLetter = String.fromCharCode(65 + row);
+          return (
+            <div key={rowLetter} className="seat-row">
+              <div className="row-label">{rowLetter}</div>
+              <div className="seats-in-row">
+                {Array.from({ length: seatsPerRow }, (_, seat) => {
+                  const seatData = seats.find(s => s.id === `${rowLetter}${seat + 1}`);
+                  return (
+                    <button
+                      key={`${rowLetter}${seat + 1}`}
+                      className={getSeatClass(seatData)}
+                      onClick={() => seatData && handleSeatClick(seatData)}
+                      disabled={seatData?.status === 'booked'}
+                      title={seatData ? `Місце ${seatData.id} - ${seatData.status === 'booked' ? 'Заброньовано' : 'Вільно'}` : ''}
+                    >
+                      {seat + 1}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       
       <div className="legend">
         <div className="legend-item">
-          <div className="seat available"></div>
-          <span>Доступно</span>
+          <div className="seat available legend-seat"></div>
+          <span>Вільні</span>
         </div>
         <div className="legend-item">
-          <div className="seat selected"></div>
-          <span>Вибрано</span>
+          <div className="seat selected legend-seat"></div>
+          <span>Обрані</span>
         </div>
         <div className="legend-item">
-          <div className="seat booked"></div>
-          <span>Заброньовано</span>
+          <div className="seat booked legend-seat"></div>
+          <span>Заброньовані</span>
         </div>
       </div>
-      
-      {selectedSeats.size > 0 && (
-        <div className="selected-seats-info">
-          <h3>Вибрані місця:</h3>
-          <div className="selected-seats-list">
-            {Array.from(selectedSeats).map(seatId => {
-              const [row, seat] = seatId.split('-').map(Number);
-              return (
-                <span key={seatId} className="selected-seat-badge">
-                  {getSeatLabel(row, seat)}
-                </span>
-              );
-            })}
-          </div>
-          <p className="total-price">
-            Всього: {selectedSeats.size} × 150 грн = {selectedSeats.size * 150} грн
-          </p>
-        </div>
-      )}
     </div>
   );
 };
